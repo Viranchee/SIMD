@@ -14,3 +14,5 @@ template <>
 int *vectorAdd<Computation::Scalar, int>(int *v1, int *v2, int size) {
   return vectorAdd<Computation::Scalar, int>(v1, v2, size);
 }
+
+bool testScalarImplementations() {}
