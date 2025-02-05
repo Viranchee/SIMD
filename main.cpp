@@ -1,6 +1,5 @@
+#include <immintrin.h>
 #include <iostream>
-
-extern "C" int IntegerAddSub_(int a, int b, int c, int d);
 
 int main() {
   std::cout << "Hello, World!" << std::endl;
@@ -8,8 +7,5 @@ int main() {
   int b = 2;
   int c = 3;
   int d = 4;
-  int result = IntegerAddSub_(a, b, c, d);
-  std::cout << "Result: " << result << std::endl;
-
   return 0;
 }
