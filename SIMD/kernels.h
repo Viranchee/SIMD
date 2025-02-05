@@ -2,6 +2,8 @@
 
 enum class Computation { Scalar, AVX, NEON };
 
+template <Computation C, typename T> T *vectorAdd(T *v1, T *v2, int size);
+
 template <Computation C>
 std::vector<float> convolution_1d(std::vector<float> input,
                                   std::vector<float> kernel, int padding,
@@ -10,5 +12,3 @@ std::vector<float> convolution_1d(std::vector<float> input,
 template <Computation C, typename T>
 void convolution_1d(T *input, int inputSize, T *kernel, int kernelSize,
                     T *output, int **outputSize, int padding, int stride);
-
-template <Computation C, typename T> T *vectorAdd(T *v1, T *v2, int size);
