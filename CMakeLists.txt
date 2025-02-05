@@ -11,9 +11,19 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 
 project("simd")
 
-# set(CMAKE_VERBOSE_MAKEFILE ON)
-file(GLOB_RECURSE SIMD_C SIMD/*.c)
-file(GLOB_RECURSE SIMD_CPP SIMD/*.cpp)
-add_executable(simd main.cpp ${SIMD_C} ${SIMD_CPP})
+set(CMAKE_VERBOSE_MAKEFILE ON)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+  message(STATUS "Using AVX for x86_64 architecture")
+  file(GLOB_RECURSE SIMD_CPP SIMD/vectorAVX.cpp)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+  message(STATUS "Using NEON for ARM architecture")
+  file(GLOB_RECURSE SIMD_CPP SIMD/vectorNeon.cpp)
+endif()
+
+# If X86 Architecture, use vectorAVX.cpp
+
+# file(GLOB_RECURSE SIMD_C SIMD/*.c)
+# file(GLOB_RECURSE SIMD_CPP SIMD/*.cpp)
+add_executable(simd main.cpp ${SIMD_C} ${SIMD_CPP} SIMD/scalars.cpp)
 # target_link_options(simd PRIVATE -fmodules-ts -x c++-system-header iostream)
 # target_compile_options(simd PRIVATE -fmodules-ts -x c++-system-header iostream)
