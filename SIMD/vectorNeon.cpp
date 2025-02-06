@@ -4,6 +4,7 @@
 #include <cstdint>
 
 // Use ARM vector instructions
+using namespace std;
 
 template <>
 int8_t *vectorAdd<Computation::NEON, int8_t>(int8_t *v1, int8_t *v2, int size) {
@@ -34,4 +35,15 @@ vectoredAdd<Computation::NEON, int8_t>(std::vector<int8_t> v1,
   }
 
   return result;
+}
+
+template <Computation C, typename T> T prefixSum(T *v, int size);
+
+// Write a Computation::Scalar implementation, T is flexible
+template <> int prefixSum<Computation::Scalar, int>(int *v, int size) {
+  int sum = 0;
+  for (int i = 0; i < size; i++) {
+    sum += v[i];
+  }
+  return sum;
 }
