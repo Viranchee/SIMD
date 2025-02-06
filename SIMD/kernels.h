@@ -19,19 +19,19 @@ void convolution_1d(T *input, int inputSize, T *kernel, int kernelSize,
 template <typename T> class SIMD {
 public:
   // Prefix Sum
-  T prefixSum(T *v, int size);
+  T prefixSum(T *v, int size) = 0;
   // Vector Add
-  T *vectorAdd(T *v1, T *v2, int size);
+  T *vectorAdd(T *v1, T *v2, int size) = 0;
   // Add all elements in the vector
-  T vectorReduce(T *v, int size);
+  T vectorReduce(T *v, int size) = 0;
   // Vector Max
-  T vectorMax(T *v, int size);
+  T vectorMax(T *v, int size) = 0;
   // Vector Min
-  T vectorMin(T *v, int size);
+  T vectorMin(T *v, int size) = 0;
   // Convolution 1D
   T *convolution_1d(T *input, int iSize, T *kernel, int kSize, int **oSize,
-                    int padding, int stride);
+                    int padding, int stride) = 0;
   // MatMul gemm
   T *matMul(T *A, int aRows, int aCols, T *B, int bRows, int bCols, T **C,
-            int **cRows, int **cCols);
+            int **cRows, int **cCols) = 0;
 };
