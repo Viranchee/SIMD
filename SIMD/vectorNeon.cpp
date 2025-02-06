@@ -61,6 +61,7 @@ public:
       // Log based prefix sum for these 16 elements
       // select all
     }
+    return result[size - 1];
   }
   // Vector Add
   virtual int8_t *vectorAdd(int8_t *v1, int8_t *v2, int size) = 0;
