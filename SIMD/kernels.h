@@ -15,3 +15,23 @@ std::vector<float> convolution_1d(std::vector<float> input,
 template <Computation C, typename T>
 void convolution_1d(T *input, int inputSize, T *kernel, int kernelSize,
                     T *output, int **outputSize, int padding, int stride);
+
+template <typename T> class SIMD {
+public:
+  // Prefix Sum
+  T prefixSum(T *v, int size);
+  // Vector Add
+  T *vectorAdd(T *v1, T *v2, int size);
+  // Add all elements in the vector
+  T vectorReduce(T *v, int size);
+  // Vector Max
+  T vectorMax(T *v, int size);
+  // Vector Min
+  T vectorMin(T *v, int size);
+  // Convolution 1D
+  T *convolution_1d(T *input, int iSize, T *kernel, int kSize, int **oSize,
+                    int padding, int stride);
+  // MatMul gemm
+  T *matMul(T *A, int aRows, int aCols, T *B, int bRows, int bCols, T **C,
+            int **cRows, int **cCols);
+};
