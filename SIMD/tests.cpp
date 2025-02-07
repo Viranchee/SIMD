@@ -79,7 +79,7 @@ template <> void testConv1D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   auto res = impl->convolution_1d(v1, 64, kernel, 16, oSize, 0, 1);
   int **oSize2;
   int8_t *result = impl2->convolution_1d(v1, 64, kernel, 16, oSize2, 0, 1);
-  if (oSize != oSize2) {
+  if (*oSize != *oSize2) {
     cout << "Failed: " << oSize << " != " << oSize2 << endl;
     return;
   }
