@@ -55,16 +55,52 @@ template <> void testVectorMin(SIMD<int8_t> *impl) {
     cout << "Failed: " << res << " != " << 1 << endl;
     return;
   }
+  cout << "VectorMin passed" << endl;
+  free(v1);
 }
 template <> void testVectorMax(SIMD<int8_t> *impl) {
+  int8_t *v1 = new int8_t[16]{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 20};
+  int8_t res = impl->vectorMax(v1, 16);
+  if (res != 20) {
+    cout << "Failed: " << res << " != " << 1 << endl;
+    return;
+  }
+  cout << "VectorMax passed" << endl;
+  free(v1);
+}
+template <> void testConv1D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
+  int8_t *v1 = new int8_t[64];
+  for (int i = 0; i < 64; i++) {
+    v1[i] = i % 4;
+  }
+  int8_t *kernel =
+      new int8_t[16]{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
+  int **oSize;
+  auto res = impl->convolution_1d(v1, 64, kernel, 16, oSize, 0, 1);
+  int **oSize2;
+  int8_t *result = impl2->convolution_1d(v1, 64, kernel, 16, oSize2, 0, 1);
+  if (oSize != oSize2) {
+    cout << "Failed: " << oSize << " != " << oSize2 << endl;
+    return;
+  }
+  for (int i = 0; i < 49; i++) {
+    if (res[i] != result[i]) {
+      cout << "Failed: " << res[i] << " != " << result[i] << endl;
+      return;
+    }
+  }
+  cout << "Conv1D passed" << endl;
+  free(v1);
+  free(kernel);
+  free(result);
+  free(*oSize);
+  free(oSize);
+  free(*oSize2);
+  free(oSize2);
+}
+template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   throw runtime_error("Not Implemented");
 }
-template <> void testConv1D(SIMD<int8_t> *impl) {
-  throw runtime_error("Not Implemented");
-}
-template <> void testConv2D(SIMD<int8_t> *impl) {
-  throw runtime_error("Not Implemented");
-}
-template <> void testGEMM(SIMD<int8_t> *impl) {
+template <> void testGEMM(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   throw runtime_error("Not Implemented");
 }
