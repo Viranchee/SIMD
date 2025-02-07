@@ -1,3 +1,6 @@
+#ifndef SIMD_KERNELS_H
+#define SIMD_KERNELS_H
+#include <cstdint>
 #include <vector>
 
 enum class Computation { Scalar, AVX, NEON };
@@ -18,8 +21,10 @@ void convolution_1d(T *input, int inputSize, T *kernel, int kernelSize,
 
 template <typename T> class SIMD {
 public:
+  // Initializer
+  SIMD() {}
   // Prefix Sum
-  virtual T prefixSum(T *v, int size) = 0;
+  virtual T *prefixSum(T *v, int size) = 0;
   // Vector Add
   virtual T *vectorAdd(T *v1, T *v2, int size) = 0;
   // Add all elements in the vector
@@ -31,9 +36,9 @@ public:
   // Convolution 1D
   virtual T *convolution_1d(T *input, int iSize, T *kernel, int kSize,
                             int **oSize, int padding, int stride) = 0;
-  // MatMul gemm
-  virtual T *matMul(T *A, int aRows, int aCols, T *B, int bRows, int bCols,
-                    T **C, int **cRows, int **cCols) = 0;
+  // MatMul gemm: MxK * KxN = MxN
+  virtual T *matMul(T *A, int M, T *B, int N, int K) = 0;
 
   virtual ~SIMD() {}
 };
+#endif

@@ -19,12 +19,13 @@ bool testScalarImplementations() {}
 
 class Scalar : public SIMD<int> {
 public:
-  virtual int prefixSum(int *v, int size) {
-    int sum = 0;
-    for (int i = 0; i < size; i++) {
-      sum += v[i];
+  virtual int *prefixSum(int *v, int size) {
+    int *result = new int[size];
+    result[0] = v[0];
+    for (int i = 1; i < size; i++) {
+      result[i] = result[i - 1] + v[i];
     }
-    return sum;
+    return result;
   }
 
   virtual int *vectorAdd(int *v1, int *v2, int size) {
