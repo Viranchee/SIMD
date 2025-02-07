@@ -44,7 +44,6 @@ public:
     return result;
   }
 
-  // Add all elements in the vector
   virtual int8_t vectorReduce(int8_t *v, int size) override {
     assert(size % 16 == 0);
     int8x16_t sumV = vdupq_n_s8(0);
@@ -59,7 +58,7 @@ public:
     sum = vgetq_lane_s64(sumV64, 0) + vgetq_lane_s64(sumV64, 1);
     return sum;
   };
-  // Vector Max
+
   virtual int8_t vectorMax(int8_t *v, int size) override {
     assert(size % 16 == 0);
     int8x16_t maxV = vdupq_n_s8(0);
@@ -75,7 +74,7 @@ public:
 
     return max;
   };
-  // Vector Min
+
   virtual int8_t vectorMin(int8_t *v, int size) override {
     assert(size % 16 == 0);
     int8x16_t minV = vdupq_n_s8(0);
@@ -91,14 +90,14 @@ public:
 
     return min;
   };
-  // Convolution 1D
+
   virtual int8_t *convolution_1d(int8_t *input, int iSize, int8_t *kernel,
                                  int kSize, int **oSize, int padding,
                                  int stride) override {
-    //
+
     return nullptr;
   };
-  // MatMul gemm
+
   virtual int8_t *matMul(int8_t *A, int M, int8_t *B, int N, int K) override {
     return nullptr;
   };
