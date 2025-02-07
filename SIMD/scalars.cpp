@@ -1,3 +1,5 @@
+#ifndef SCALAR_H
+#define SCALAR_H
 #include "kernels.h"
 #include <cstdint>
 
@@ -15,8 +17,6 @@ template <>
 int *vectorAdd<Computation::Scalar, int>(int *v1, int *v2, int size) {
   return vectorAdd<Computation::Scalar, int>(v1, v2, size);
 }
-
-bool testScalarImplementations() {}
 
 class Scalar : public SIMD<int8_t> {
 public:
@@ -79,3 +79,5 @@ public:
     return result;
   }
 };
+
+#endif

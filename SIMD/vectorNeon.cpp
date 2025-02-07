@@ -1,3 +1,5 @@
+#ifndef SIMD_VECTORNEON_CPP
+#define SIMD_VECTORNEON_CPP
 #include "kernels.h"
 #include <arm_neon.h>
 #include <cassert>
@@ -102,3 +104,4 @@ public:
     return nullptr;
   };
 };
+#endif // SIMD_VECTORNEON_CPP
