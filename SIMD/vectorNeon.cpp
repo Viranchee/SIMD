@@ -119,8 +119,45 @@ public:
     return output;
   }
 
-  virtual int8_t *matMul(int8_t *A, int M, int8_t *B, int N, int K) override {
-    return nullptr;
-  };
+  virtual int8_t *convolution_2d(int8_t *input, int iSide, int8_t *kernel,
+                                 int kSide, int **oSide, int padding,
+                                 int stride) override {
+
+    int oSideValue = (iSide + 2 * padding - kSide) / stride + 1;
+    *oSide = new int(oSideValue);
+
+    int8_t *output = new int8_t[oSideValue * oSideValue];
+
+    for (int i = 0; i < oSideValue; i++) {
+      for (int j = 0; j < oSideValue; j++) {
+        int32x4_t sumVec = vdupq_n_s32(0);
+
+        for (int ki = 0; ki < kSide; ki++) {
+          for (int kj = 0; kj < kSide; kj += 16) {
+            int row = i * stride + ki - padding;
+            int col = j * stride + kj - padding;
+            if (row >= 0 && row < iSide && col >= 0 && col < iSide) {
+
+              int8x16_t inputVec = vld1q_s8(input + row * iSide + col);
+              int8x16_t kernelVec = vld1q_s8(kernel + ki * kSide + kj);
+
+              sumVec = vmlal_s8(sumVec, vget_low_s8(inputVec),
+                                vget_low_s8(kernelVec));
+              sumVec = vmlal_s8(sumVec, vget_high_s8(inputVec),
+                                vget_high_s8(kernelVec));
+            }
+          }
+        }
+
+        int32_t sumArr[4];
+        vst1q_s32(sumArr, sumVec);
+        int sum = sumArr[0] + sumArr[1] + sumArr[2] + sumArr[3];
+
+        output[i * oSideValue + j] = std::min(std::max(sum, -128), 127);
+      }
+    }
+
+    return output;
+  }
 };
 #endif // SIMD_VECTORNEON_CPP

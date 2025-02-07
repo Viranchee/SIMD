@@ -48,7 +48,23 @@ public:
   }
   virtual int8_t *convolution_1d(int8_t *input, int iSize, int8_t *kernel,
                                  int kSize, int **oSize, int padding,
-                                 int stride) override {}
+                                 int stride) override {
+    int outSize = (iSize + 2 * padding - kSize) / stride + 1;
+    *oSize = new int(outSize);
+    int8_t *output = new int8_t[outSize];
+    for (int i = 0; i < outSize; i++) {
+      int sum = 0;
+      for (int j = 0; j < kSize; j++) {
+        int inputIdx = i * stride + j;
+        if (inputIdx < 0 || inputIdx >= iSize) {
+          continue;
+        }
+        sum += input[inputIdx] * kernel[j];
+      }
+      output[i] = sum;
+    }
+    return output;
+  }
   virtual int8_t *matMul(int8_t *A, int M, int8_t *B, int N, int K) override {
     int8_t *result = new int8_t[M * N];
     for (int i = 0; i < M; i++) {
@@ -62,32 +78,31 @@ public:
     }
     return result;
   }
-  virtual int8_t *convolution_2d(int8_t *input, int iRows, int iCols,
-                                 int8_t *kernel, int kRows, int kCols,
-                                 int **oRows, int **oCols, int padding,
+  virtual int8_t *convolution_2d(int8_t *input, int iSide, int8_t *kernel,
+                                 int kSide, int **oSide, int padding,
                                  int stride) override {
-    int outRows = (iRows + 2 * padding - kRows) / stride + 1;
-    int outCols = (iCols + 2 * padding - kCols) / stride + 1;
-    *oRows = new int(outRows);
-    *oCols = new int(outCols);
-    int8_t *output = new int8_t[outRows * outCols];
-    for (int i = 0; i < outRows; i++) {
-      for (int j = 0; j < outCols; j++) {
+    int oSideValue = (iSide + 2 * padding - kSide) / stride + 1;
+    *oSide = new int(oSideValue);
+
+    int8_t *output = new int8_t[oSideValue * oSideValue];
+
+    for (int i = 0; i < oSideValue; i++) {
+      for (int j = 0; j < oSideValue; j++) {
         int sum = 0;
-        for (int k = 0; k < kRows; k++) {
-          for (int l = 0; l < kCols; l++) {
-            int inputRow = i * stride + k;
-            int inputCol = j * stride + l;
-            if (inputRow < 0 || inputRow >= iRows || inputCol < 0 ||
-                inputCol >= iCols) {
-              continue;
+        for (int ki = 0; ki < kSide; ki++) {
+          for (int kj = 0; kj < kSide; kj++) {
+            int row = i * stride + ki - padding;
+            int col = j * stride + kj - padding;
+            if (row >= 0 && row < iSide && col >= 0 && col < iSide) {
+              sum += input[row * iSide + col] * kernel[ki * kSide + kj];
             }
-            sum += input[inputRow * iCols + inputCol] * kernel[k * kCols + l];
           }
         }
-        output[i * outCols + j] = sum;
+        output[i * oSideValue + j] =
+            std::min(std::max(sum, -128), 127); // Clamp to int8_t range
       }
     }
+
     return output;
   }
 };
