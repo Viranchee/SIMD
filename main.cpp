@@ -17,6 +17,7 @@ bool testVectorAdd() {
 
 int main() {
   auto neon = new Neon();
+  auto scalar = new Scalar();
   //
   return 0;
 }

@@ -19,7 +19,7 @@ bool testScalarImplementations() {}
 
 class Scalar : public SIMD<int> {
 public:
-  virtual int *prefixSum(int *v, int size) {
+  virtual int *prefixSum(int *v, int size) override {
     int *result = new int[size];
     result[0] = v[0];
     for (int i = 1; i < size; i++) {
@@ -28,7 +28,7 @@ public:
     return result;
   }
 
-  virtual int *vectorAdd(int *v1, int *v2, int size) {
+  virtual int *vectorAdd(int *v1, int *v2, int size) override {
     int *result = new int[size];
     for (int i = 0; i < size; i++) {
       result[i] = v1[i] + v2[i];
@@ -36,7 +36,7 @@ public:
     return result;
   }
 
-  virtual int vectorReduce(int *v, int size) {
+  virtual int vectorReduce(int *v, int size) override {
     int sum = 0;
     for (int i = 0; i < size; i++) {
       sum += v[i];
@@ -44,7 +44,7 @@ public:
     return sum;
   }
 
-  virtual int vectorMax(int *v, int size) {
+  virtual int vectorMax(int *v, int size) override {
     int max = v[0];
     for (int i = 1; i < size; i++) {
       if (v[i] > max) {
@@ -54,7 +54,7 @@ public:
     return max;
   }
 
-  virtual int vectorMin(int *v, int size) {
+  virtual int vectorMin(int *v, int size) override {
     int min = v[0];
     for (int i = 1; i < size; i++) {
       if (v[i] < min) {
@@ -65,7 +65,7 @@ public:
   }
 
   virtual int *convolution_1d(int *input, int iSize, int *kernel, int kSize,
-                              int **oSize, int padding, int stride) {
+                              int **oSize, int padding, int stride) override {
     int outSize = (iSize + 2 * padding - kSize) / stride + 1;
     *oSize = new int(outSize);
     int *output = new int[outSize];
@@ -78,18 +78,16 @@ public:
     return output;
   }
 
-  virtual int *matMul(int *A, int aRows, int aCols, int *B, int bRows,
-                      int bCols, int **C, int **cRows, int **cCols) {
-    int *result = new int[aRows * bCols];
-    for (int i = 0; i < aRows; i++) {
-      for (int j = 0; j < bCols; j++) {
-        result[i * bCols + j] = 0;
-        for (int k = 0; k < aCols; k++) {
-          result[i * bCols + j] += A[i * aCols + k] * B[k * bCols + j];
+  virtual int *matMul(int *A, int M, int *B, int N, int K) override {
+    int *C = new int[M * N];
+    for (int i = 0; i < M; i++) {
+      for (int j = 0; j < N; j++) {
+        C[i * N + j] = 0;
+        for (int k = 0; k < K; k++) {
+          C[i * N + j] += A[i * K + k] * B[k * N + j];
         }
       }
     }
-
-    return result;
+    return C;
   }
 };
