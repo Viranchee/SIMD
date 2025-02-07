@@ -12,24 +12,21 @@ class Neon : public SIMD<int8_t> {
 public:
   virtual int8_t *prefixSum(int8_t *v, int size) override {
     assert(size % 16 == 0);
-    // Have a running sum
     int8_t *result = new int8_t[size];
     int8_t runningSum = 0;
     for (int i = 0; i < size; i += 16) {
-      // load next 16 elements
       int8x16_t zeroVec = vdupq_n_s8(0);
       int8x16_t data = vld1q_s8(v + i);
-      // Log based prefix sum for these 16 elements
       data = vaddq_s8(data, vextq_s8(zeroVec, data, 1));
       data = vaddq_s8(data, vextq_s8(zeroVec, data, 2));
       data = vaddq_s8(data, vextq_s8(zeroVec, data, 4));
       data = vaddq_s8(data, vextq_s8(zeroVec, data, 8));
-
-      // broadcast the running sum
       data = vaddq_s8(data, vdupq_n_s8(runningSum));
       runningSum = vgetq_lane_s8(data, 15);
+      vst1q_s8(result + i, data);
     }
-    return result;
+
+    return result; // Return the result array
   }
 
   virtual int8_t *vectorAdd(int8_t *v1, int8_t *v2, int size) override {
@@ -77,7 +74,7 @@ public:
 
   virtual int8_t vectorMin(int8_t *v, int size) override {
     assert(size % 16 == 0);
-    int8x16_t minV = vdupq_n_s8(0);
+    int8x16_t minV = vdupq_n_s8(INT8_MAX);
     for (int i = 0; i < size; i += 16) {
       int8x16_t data = vld1q_s8(v + i);
       minV = vminq_s8(minV, data);
@@ -169,21 +166,15 @@ public:
     for (int i = 0; i < M; i++) {
       for (int j = 0; j < N; j++) {
         int32x4_t sumVec = vdupq_n_s32(0);
-
         for (int k = 0; k < K; k += 16) {
-
           int8x16_t Avec = vld1q_s8(A + i * K + k);
-
           int8x16_t Bvec = vld1q_s8(B + k * N + j);
-
           sumVec = vmlal_s8(sumVec, vget_low_s8(Avec), vget_low_s8(Bvec));
           sumVec = vmlal_s8(sumVec, vget_high_s8(Avec), vget_high_s8(Bvec));
         }
-
         int32_t sumArr[4];
         vst1q_s32(sumArr, sumVec);
         int sum = sumArr[0] + sumArr[1] + sumArr[2] + sumArr[3];
-
         C[i * N + j] = std::min(std::max(sum, -128), 127);
       }
     }
