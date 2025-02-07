@@ -36,6 +36,10 @@ public:
   // Convolution 1D
   virtual T *convolution_1d(T *input, int iSize, T *kernel, int kSize,
                             int **oSize, int padding, int stride) = 0;
+  // Convolution 2D
+  virtual T *convolution_2d(T *input, int iRows, int iCols, T *kernel,
+                            int kRows, int kCols, int **oRows, int **oCols,
+                            int padding, int stride) = 0;
   // MatMul gemm: MxK * KxN = MxN
   virtual T *matMul(T *A, int M, T *B, int N, int K) = 0;
 
