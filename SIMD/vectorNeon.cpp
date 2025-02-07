@@ -77,8 +77,19 @@ public:
   };
   // Vector Min
   virtual int8_t vectorMin(int8_t *v, int size) override {
-    //
-    return -1;
+    assert(size % 16 == 0);
+    int8x16_t minV = vdupq_n_s8(0);
+    for (int i = 0; i < size; i += 16) {
+      int8x16_t data = vld1q_s8(v + i);
+      minV = vminq_s8(minV, data);
+    }
+    const int8x8_t minV8 = vpmin_s8(vget_low_s8(minV), vget_high_s8(minV));
+    const int8x8_t minV4 = vpmin_s8(minV8, minV8);
+    const int8x8_t minV2 = vpmin_s8(minV4, minV4);
+    const int8x8_t minV1 = vpmin_s8(minV2, minV2);
+    int8_t min = vget_lane_s8(minV1, 0);
+
+    return min;
   };
   // Convolution 1D
   virtual int8_t *convolution_1d(int8_t *input, int iSize, int8_t *kernel,
