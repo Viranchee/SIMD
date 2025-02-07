@@ -159,5 +159,36 @@ public:
 
     return output;
   }
+
+  virtual int8_t *matMul(int8_t *A, int M, int8_t *B, int N, int K) override {
+    int8_t *C = new int8_t[M * N];
+    for (int i = 0; i < M * N; i++) {
+      C[i] = 0;
+    }
+
+    for (int i = 0; i < M; i++) {
+      for (int j = 0; j < N; j++) {
+        int32x4_t sumVec = vdupq_n_s32(0);
+
+        for (int k = 0; k < K; k += 16) {
+
+          int8x16_t Avec = vld1q_s8(A + i * K + k);
+
+          int8x16_t Bvec = vld1q_s8(B + k * N + j);
+
+          sumVec = vmlal_s8(sumVec, vget_low_s8(Avec), vget_low_s8(Bvec));
+          sumVec = vmlal_s8(sumVec, vget_high_s8(Avec), vget_high_s8(Bvec));
+        }
+
+        int32_t sumArr[4];
+        vst1q_s32(sumArr, sumVec);
+        int sum = sumArr[0] + sumArr[1] + sumArr[2] + sumArr[3];
+
+        C[i * N + j] = std::min(std::max(sum, -128), 127);
+      }
+    }
+
+    return C;
+  }
 };
 #endif // SIMD_VECTORNEON_CPP

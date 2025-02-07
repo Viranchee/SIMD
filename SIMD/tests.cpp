@@ -106,9 +106,9 @@ template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   int8_t *kernel =
       new int8_t[16]{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
   int **oSize;
-  auto res = impl->convolution_2d(v1, 8, 8, kernel, 4, 4, oSize, 0, 1);
+  auto res = impl->convolution_2d(v1, 8, kernel, 4, oSize, 0, 1);
   int **oSize2;
-  int8_t *result = impl2->convolution_2d(v1, 8, 8, kernel, 4, 4, oSize2, 0, 1);
+  int8_t *result = impl2->convolution_2d(v1, 8, kernel, 4, oSize2, 0, 1);
   if (oSize != oSize2) {
     cout << "Failed: " << oSize << " != " << oSize2 << endl;
     return;
