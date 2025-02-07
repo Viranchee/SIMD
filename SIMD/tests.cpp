@@ -49,7 +49,12 @@ template <> void testPrefixSum(SIMD<int8_t> *impl) {
   free(result);
 }
 template <> void testVectorMin(SIMD<int8_t> *impl) {
-  throw runtime_error("Not Implemented");
+  int8_t *v1 = new int8_t[16]{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
+  int8_t res = impl->vectorMin(v1, 16);
+  if (res != 1) {
+    cout << "Failed: " << res << " != " << 1 << endl;
+    return;
+  }
 }
 template <> void testVectorMax(SIMD<int8_t> *impl) {
   throw runtime_error("Not Implemented");
