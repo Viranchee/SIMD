@@ -34,4 +34,6 @@ public:
   // MatMul gemm
   virtual T *matMul(T *A, int aRows, int aCols, T *B, int bRows, int bCols,
                     T **C, int **cRows, int **cCols) = 0;
+
+  virtual ~SIMD() {}
 };
