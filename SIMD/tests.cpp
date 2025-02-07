@@ -109,7 +109,7 @@ template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   auto res = impl->convolution_2d(v1, 8, kernel, 4, oSize, 0, 1);
   int **oSize2;
   int8_t *result = impl2->convolution_2d(v1, 8, kernel, 4, oSize2, 0, 1);
-  if (oSize != oSize2) {
+  if (*oSize != *oSize2) {
     cout << "Failed: " << oSize << " != " << oSize2 << endl;
     return;
   }
@@ -129,5 +129,23 @@ template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   free(oSize2);
 }
 template <> void testGEMM(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
-  throw runtime_error("Not Implemented");
+  int8_t *A = new int8_t[16];
+  int8_t *B = new int8_t[16];
+  for (int i = 0; i < 16; i++) {
+    A[i] = i % 4;
+    B[i] = i % 4;
+  }
+  int8_t *result = impl->matMul(A, 4, B, 4, 4);
+  int8_t *result2 = impl2->matMul(A, 4, B, 4, 4);
+  for (int i = 0; i < 16; i++) {
+    if (result[i] != result2[i]) {
+      cout << "Failed: " << result[i] << " != " << result2[i] << endl;
+      return;
+    }
+  }
+  cout << "GEMM passed" << endl;
+  free(A);
+  free(B);
+  free(result);
+  free(result2);
 }
