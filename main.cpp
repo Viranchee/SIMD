@@ -13,5 +13,12 @@ int main() {
   testVectorReduce(neon);
   testPrefixSum(scalar);
   testPrefixSum(neon);
+  testVectorMin(scalar);
+  testVectorMin(neon);
+  testVectorMax(scalar);
+  testVectorMax(neon);
+  testConv1D(scalar, neon);
+  testConv2D(scalar, neon);
+  testGEMM(scalar, neon);
   return 0;
 }
