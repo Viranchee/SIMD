@@ -7,8 +7,9 @@
 int main() {
   auto neon = new Neon();
   auto scalar = new Scalar();
-  testVectorAdd<int8_t>(neon);
-  // testVectorReduce(scalar);
+  testVectorAdd(scalar);
+  testVectorAdd(neon);
+  testVectorReduce(scalar);
   testVectorReduce(neon);
   return 0;
 }

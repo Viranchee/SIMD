@@ -94,9 +94,30 @@ public:
   virtual int8_t *convolution_1d(int8_t *input, int iSize, int8_t *kernel,
                                  int kSize, int **oSize, int padding,
                                  int stride) override {
+    assert(iSize % 16 == 0);
+    assert(kSize % 16 == 0);
 
-    return nullptr;
-  };
+    int outSize = (iSize + 2 * padding - kSize) / stride + 1;
+    int8_t *output = new int8_t[outSize];
+
+    for (int i = 0; i < outSize; i++) {
+      int16x8_t sum = vdupq_n_s16(0); // Use int16 to avoid overflow
+
+      for (int j = 0; j < kSize; j += 16) {
+        int8x16_t inputV = vld1q_s8(input + i * stride + j);
+        int8x16_t kernelV = vld1q_s8(kernel + j);
+        int16x8_t prod1 = vmull_s8(vget_low_s8(inputV), vget_low_s8(kernelV));
+        int16x8_t prod2 = vmull_s8(vget_high_s8(inputV), vget_high_s8(kernelV));
+        sum = vaddq_s16(sum, prod1);
+        sum = vaddq_s16(sum, prod2);
+      }
+      int result = vaddvq_s16(sum);
+      output[i] = (int8_t)std::max(-128, std::min(127, result));
+    }
+
+    *oSize = new int(outSize);
+    return output;
+  }
 
   virtual int8_t *matMul(int8_t *A, int M, int8_t *B, int N, int K) override {
     return nullptr;
