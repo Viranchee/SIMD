@@ -22,7 +22,7 @@ template <typename T> void testVectorAdd(SIMD<T> *impl) {
 }
 template <> void testVectorReduce<int8_t>(SIMD<int8_t> *impl) {
   int8_t *v1 = new int8_t[16]{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
-  auto res = impl->vectorReduce(v1, 16);
+  int8_t res = impl->vectorReduce(v1, 16);
   if (res != 40) {
     cout << "Failed: " << res << " != " << 40 << endl;
     return;
