@@ -11,5 +11,7 @@ int main() {
   testVectorAdd(neon);
   testVectorReduce(scalar);
   testVectorReduce(neon);
+  testPrefixSum(scalar);
+  testPrefixSum(neon);
   return 0;
 }
