@@ -1,4 +1,5 @@
 #include "kernels.h"
+#include <cstdint>
 
 template <Computation C, typename T> T *vectorAdd(T *v1, T *v2, int size) {
   T *result = new T[size];
@@ -17,77 +18,64 @@ int *vectorAdd<Computation::Scalar, int>(int *v1, int *v2, int size) {
 
 bool testScalarImplementations() {}
 
-class Scalar : public SIMD<int> {
+class Scalar : public SIMD<int8_t> {
 public:
-  virtual int *prefixSum(int *v, int size) override {
-    int *result = new int[size];
+  virtual int8_t *prefixSum(int8_t *v, int size) override {
+    int8_t *result = new int8_t[size];
     result[0] = v[0];
     for (int i = 1; i < size; i++) {
       result[i] = result[i - 1] + v[i];
     }
     return result;
   }
-
-  virtual int *vectorAdd(int *v1, int *v2, int size) override {
-    int *result = new int[size];
+  virtual int8_t *vectorAdd(int8_t *v1, int8_t *v2, int size) override {
+    int8_t *result = new int8_t[size];
     for (int i = 0; i < size; i++) {
       result[i] = v1[i] + v2[i];
     }
     return result;
   }
-
-  virtual int vectorReduce(int *v, int size) override {
-    int sum = 0;
+  virtual int8_t vectorReduce(int8_t *v, int size) override {
+    int8_t result = 0;
     for (int i = 0; i < size; i++) {
-      sum += v[i];
+      result += v[i];
     }
-    return sum;
+    return result;
   }
-
-  virtual int vectorMax(int *v, int size) override {
-    int max = v[0];
+  virtual int8_t vectorMax(int8_t *v, int size) override {
+    int8_t result = v[0];
     for (int i = 1; i < size; i++) {
-      if (v[i] > max) {
-        max = v[i];
+      if (v[i] > result) {
+        result = v[i];
       }
     }
-    return max;
+    return result;
   }
-
-  virtual int vectorMin(int *v, int size) override {
-    int min = v[0];
+  virtual int8_t vectorMin(int8_t *v, int size) override {
+    int8_t result = v[0];
     for (int i = 1; i < size; i++) {
-      if (v[i] < min) {
-        min = v[i];
+      if (v[i] < result) {
+        result = v[i];
       }
     }
-    return min;
+    return result;
   }
-
-  virtual int *convolution_1d(int *input, int iSize, int *kernel, int kSize,
-                              int **oSize, int padding, int stride) override {
-    int outSize = (iSize + 2 * padding - kSize) / stride + 1;
-    *oSize = new int(outSize);
-    int *output = new int[outSize];
-    for (int i = 0; i < outSize; i++) {
-      output[i] = 0;
-      for (int j = 0; j < kSize; j++) {
-        output[i] += input[i * stride + j] * kernel[j];
-      }
-    }
-    return output;
+  virtual int8_t *convolution_1d(int8_t *input, int iSize, int8_t *kernel,
+                                 int kSize, int **oSize, int padding,
+                                 int stride) override {
+    return nullptr;
   }
-
-  virtual int *matMul(int *A, int M, int *B, int N, int K) override {
-    int *C = new int[M * N];
+  virtual int8_t *matMul(int8_t *A, int M, int8_t *B, int N, int K) override {
+    int8_t *result = new int8_t[M * N];
     for (int i = 0; i < M; i++) {
       for (int j = 0; j < N; j++) {
-        C[i * N + j] = 0;
+        int sum = 0;
         for (int k = 0; k < K; k++) {
-          C[i * N + j] += A[i * K + k] * B[k * N + j];
+          sum += A[i * K + k] * B[k * N + j];
         }
+        result[i * N + j] = sum;
       }
     }
-    return C;
+    return result;
   }
 };
