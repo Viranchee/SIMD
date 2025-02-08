@@ -97,12 +97,13 @@ public:
   };
 
   virtual int8_t *convolution_1d(int8_t *input, int iSize, int8_t *kernel,
-                                 int kSize, int **oSize, int padding,
+                                 int kSize, int &oSize, int padding,
                                  int stride) override {
     assert(iSize % 16 == 0);
     assert(kSize % 16 == 0);
 
-    int outSize = (iSize + 2 * padding - kSize) / stride + 1;
+    const int outSize = (iSize + 2 * padding - kSize) / stride + 1;
+    oSize = outSize;
     int8_t *output = new int8_t[outSize];
 
     for (int i = 0; i < outSize; i++) {
@@ -120,7 +121,6 @@ public:
       output[i] = (int8_t)std::max(-128, std::min(127, result));
     }
 
-    *oSize = new int(outSize);
     return output;
   }
 

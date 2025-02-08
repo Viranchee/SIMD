@@ -71,19 +71,21 @@ template <> void testVectorMax(SIMD<int8_t> *impl) {
 template <> void testConv1D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   int8_t *v1 = new int8_t[64];
   for (int i = 0; i < 64; i++) {
-    v1[i] = i % 4;
+    v1[i] = 1;
   }
-  int8_t *kernel =
-      new int8_t[16]{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
-  int **oSize;
-  auto res = impl->convolution_1d(v1, 64, kernel, 16, oSize, 0, 1);
-  int **oSize2;
-  int8_t *result = impl2->convolution_1d(v1, 64, kernel, 16, oSize2, 0, 1);
+  int8_t *kernel = new int8_t[16];
+  for (int i = 0; i < 16; i++) {
+    kernel[i] = i % 4; // 0, 1, 2, 3
+  }
+  int *oSize = new int;
+  int *oSize2 = new int;
+  auto res = impl->convolution_1d(v1, 64, kernel, 16, *oSize, 0, 1);
+  auto result = impl2->convolution_1d(v1, 64, kernel, 16, *oSize2, 0, 1);
   if (*oSize != *oSize2) {
     cout << "Failed: " << oSize << " != " << oSize2 << endl;
     return;
   }
-  for (int i = 0; i < 49; i++) {
+  for (int i = 0; i < *oSize; i++) {
     if (res[i] != result[i]) {
       cout << "Failed: " << res[i] << " != " << result[i] << endl;
       return;
@@ -93,10 +95,6 @@ template <> void testConv1D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   free(v1);
   free(kernel);
   free(result);
-  free(*oSize);
-  free(oSize);
-  free(*oSize2);
-  free(oSize2);
 }
 template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   int8_t *v1 = new int8_t[64];

@@ -35,7 +35,7 @@ public:
   virtual T vectorMin(T *v, int size) = 0;
   // Convolution 1D
   virtual T *convolution_1d(T *input, int iSize, T *kernel, int kSize,
-                            int **oSize, int padding, int stride) = 0;
+                            int &oSize, int padding, int stride) = 0;
   // Convolution 2D
   virtual T *convolution_2d(T *input, int iSide, T *kernel, int kSide,
                             int **oSide, int padding, int stride) = 0;
