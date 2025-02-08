@@ -21,16 +21,16 @@ public:
     int8_t carry = 0;
     for (int i = 0; i < size; i += 16) {
       int8x16_t sum = vld1q_s8(v + i);
-      // int8x16_t temp = vextq_s8(vdupq_n_s8(0), sum, 15);
-      // sum = vaddq_s8(sum, temp);
-      // temp = vextq_s8(vdupq_n_s8(0), sum, 14);
-      // sum = vaddq_s8(sum, temp);
-      // temp = vextq_s8(vdupq_n_s8(0), sum, 12);
-      // sum = vaddq_s8(sum, temp);
-      // temp = vextq_s8(vdupq_n_s8(0), sum, 8);
-      // sum = vaddq_s8(sum, temp);
-      // sum = vaddq_s8(sum, vdupq_n_s8(carry));
-      // carry = vgetq_lane_s8(sum, 15);
+      int8x16_t temp = vextq_s8(vdupq_n_s8(0), sum, 15);
+      sum = vaddq_s8(sum, temp);
+      temp = vextq_s8(vdupq_n_s8(0), sum, 14);
+      sum = vaddq_s8(sum, temp);
+      temp = vextq_s8(vdupq_n_s8(0), sum, 12);
+      sum = vaddq_s8(sum, temp);
+      temp = vextq_s8(vdupq_n_s8(0), sum, 8);
+      sum = vaddq_s8(sum, temp);
+      sum = vaddq_s8(sum, vdupq_n_s8(carry));
+      carry = vgetq_lane_s8(sum, 15);
       vst1q_s8(result + i, sum);
     }
 

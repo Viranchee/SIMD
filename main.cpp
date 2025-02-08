@@ -12,10 +12,8 @@ int main() {
   // run prefixSum and print the values
   const int arrSize = 64;
   int8_t *v1 = new int8_t[arrSize];
-  bool sign = false;
   for (int i = 0; i < arrSize; ++i) {
-    v1[i] = 1 - sign * 2;
-    sign = !sign;
+    v1[i] = 1;
   }
   auto *result = neon->prefixSum(v1, arrSize);
   for (int i = 0; i < arrSize; ++i) {
