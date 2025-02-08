@@ -92,10 +92,14 @@ template <> void testConv1D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
     }
   }
   cout << "Conv1D passed" << endl;
-  free(v1);
-  free(kernel);
-  free(result);
+  delete[] v1;
+  delete[] kernel;
+  delete[] result;
+  delete[] res;
+  delete oSize;
+  delete oSize2;
 }
+
 template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   int8_t *v1 = new int8_t[64];
   for (int i = 0; i < 64; i++) {

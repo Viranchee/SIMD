@@ -20,7 +20,7 @@ int main() {
   testVectorMin(neon);
   testVectorMax(scalar);
   testVectorMax(neon);
-  testConv1D(scalar, scalar);
+  testConv1D(scalar, neon);
   testConv2D(scalar, neon);
   testGEMM(scalar, neon);
   return 0;
