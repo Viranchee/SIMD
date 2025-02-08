@@ -9,6 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 23 CACHE STRING "C++ standard to conform to")
 set(CMAKE_C_STANDARD_REQUIRED True)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 project("simd")
 
 set(CMAKE_VERBOSE_MAKEFILE ON)

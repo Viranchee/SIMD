@@ -9,8 +9,10 @@ public:
   virtual int8_t *prefixSum(int8_t *v, int size) override {
     int8_t *result = new int8_t[size];
     result[0] = v[0];
+    int8_t acc = v[0];
     for (int i = 1; i < size; i++) {
-      result[i] = result[i - 1] + v[i];
+      result[i] = v[i] + acc;
+      acc += v[i];
     }
     return result;
   }
@@ -52,19 +54,20 @@ public:
     int outSize = (iSize + 2 * padding - kSize) / stride + 1;
     *oSize = new int(outSize);
     int8_t *output = new int8_t[outSize];
+
     for (int i = 0; i < outSize; i++) {
-      int sum = 0;
+      int32_t sum = 0;
       for (int j = 0; j < kSize; j++) {
-        int inputIdx = i * stride + j;
-        if (inputIdx < 0 || inputIdx >= iSize) {
-          continue;
+        int inputIdx = i * stride + j - padding;
+        if (inputIdx >= 0 && inputIdx < iSize) {
+          sum += input[inputIdx] * kernel[j];
         }
-        sum += input[inputIdx] * kernel[j];
       }
-      output[i] = sum;
+      output[i] = std::max(INT8_MIN, std::min(INT8_MAX, sum));
     }
     return output;
   }
+
   virtual int8_t *matMul(int8_t *A, int M, int8_t *B, int N, int K) override {
     int8_t *result = new int8_t[M * N];
     for (int i = 0; i < M; i++) {
