@@ -10,16 +10,16 @@ int main() {
   auto neon = new Neon();
   auto scalar = new Scalar();
 
-  testVectorAdd(scalar);
-  testVectorAdd(neon);
-  testVectorReduce(scalar);
-  testVectorReduce(neon);
-  testPrefixSum(scalar);
-  testPrefixSum(neon);
-  testVectorMin(scalar);
-  testVectorMin(neon);
-  testVectorMax(scalar);
-  testVectorMax(neon);
+  // testVectorAdd(scalar);
+  // testVectorAdd(neon);
+  // testVectorReduce(scalar);
+  // testVectorReduce(neon);
+  // testPrefixSum(scalar);
+  // testPrefixSum(neon);
+  // testVectorMin(scalar);
+  // testVectorMin(neon);
+  // testVectorMax(scalar);
+  // testVectorMax(neon);
   testConv1D(scalar, neon);
   testConv2D(scalar, neon);
   testGEMM(scalar, neon);

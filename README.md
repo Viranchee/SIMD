@@ -1,11 +1,11 @@
 # ARM NEON SIMD
 
 ### Implemented with passing tests
-- [x] PrefixSum
 - [x] VectorAdd
 - [x] VectorMax
 - [x] VectorMin
+- [x] PrefixSum // 1 1 1 1
 - [x] VectorReduce
-- [ ] Conv1D
+- [x] Conv1D
 - [ ] Conv2D
 - [ ] GEMM

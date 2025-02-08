@@ -39,12 +39,12 @@ public:
 
   virtual int8_t *vectorAdd(int8_t *v1, int8_t *v2, int size) override {
     assert(size % 16 == 0);
-    int8_t *result = new int8_t[size]; // Allocate memory for result
+    int8_t *result = new int8_t[size];
     for (int i = 0; i < size; i += 16) {
       int8x16_t a = vld1q_s8(v1 + i);
       int8x16_t b = vld1q_s8(v2 + i);
       int8x16_t sum = vaddq_s8(a, b);
-      vst1q_s8(result + i, sum); // Store result
+      vst1q_s8(result + i, sum);
     }
     return result;
   }
@@ -142,7 +142,6 @@ public:
             int row = i * stride + ki - padding;
             int col = j * stride + kj - padding;
             if (row >= 0 && row < iSide && col >= 0 && col < iSide) {
-
               int8x16_t inputVec = vld1q_s8(input + row * iSide + col);
               int8x16_t kernelVec = vld1q_s8(kernel + ki * kSide + kj);
 
@@ -154,11 +153,26 @@ public:
           }
         }
 
+        // Handle remaining elements if kSide is not a multiple of 16
+        for (int ki = 0; ki < kSide; ki++) {
+          for (int kj = (kSide / 16) * 16; kj < kSide; kj++) {
+            int row = i * stride + ki - padding;
+            int col = j * stride + kj - padding;
+            if (row >= 0 && row < iSide && col >= 0 && col < iSide) {
+              int8_t inputVal = input[row * iSide + col];
+              int8_t kernelVal = kernel[ki * kSide + kj];
+              sumVec =
+                  vaddq_s32(sumVec, vmovl_s8(vdup_n_s8(inputVal * kernelVal)));
+            }
+          }
+        }
+
         int32_t sumArr[4];
         vst1q_s32(sumArr, sumVec);
         int sum = sumArr[0] + sumArr[1] + sumArr[2] + sumArr[3];
 
-        output[i * oSideValue + j] = std::min(std::max(sum, -128), 127);
+        output[i * oSideValue + j] =
+            static_cast<int8_t>(std::max(INT8_MIN, std::min(INT8_MAX, sum)));
       }
     }
 

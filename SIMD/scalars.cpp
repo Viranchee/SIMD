@@ -91,7 +91,7 @@ public:
 
     for (int i = 0; i < oSideValue; i++) {
       for (int j = 0; j < oSideValue; j++) {
-        int sum = 0;
+        int32_t sum = 0;
         for (int ki = 0; ki < kSide; ki++) {
           for (int kj = 0; kj < kSide; kj++) {
             int row = i * stride + ki - padding;
@@ -102,7 +102,7 @@ public:
           }
         }
         output[i * oSideValue + j] =
-            std::min(std::max(sum, -128), 127); // Clamp to int8_t range
+            static_cast<int8_t>(std::max(INT8_MIN, std::min(INT8_MAX, sum)));
       }
     }
 
