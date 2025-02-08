@@ -29,9 +29,11 @@ template <> void testVectorAdd(SIMD<int8_t> *impl) {
   delete[] v1;
   delete[] v2;
 }
+
 template <typename T> void testVectorAdd(SIMD<T> *impl) {
   throw runtime_error("Not Implemented");
 }
+
 template <> void testVectorReduce(SIMD<int8_t> *impl) {
   int8_t *v1 = new int8_t[16]{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
   int8_t res = impl->vectorReduce(v1, 16);
@@ -58,6 +60,7 @@ template <> void testPrefixSum(SIMD<int8_t> *impl) {
   delete[] v1;
   delete[] result;
 }
+
 template <> void testVectorMin(SIMD<int8_t> *impl) {
   int8_t *v1 = new int8_t[16]{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
   int8_t res = impl->vectorMin(v1, 16);
@@ -68,6 +71,7 @@ template <> void testVectorMin(SIMD<int8_t> *impl) {
   cout << "VectorMin passed" << endl;
   free(v1);
 }
+
 template <> void testVectorMax(SIMD<int8_t> *impl) {
   int8_t *v1 = new int8_t[16]{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 20};
   int8_t res = impl->vectorMax(v1, 16);
@@ -78,6 +82,7 @@ template <> void testVectorMax(SIMD<int8_t> *impl) {
   cout << "VectorMax passed" << endl;
   free(v1);
 }
+
 template <> void testConv1D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   int8_t *v1 = new int8_t[64];
   for (int i = 0; i < 64; i++) {
@@ -147,6 +152,7 @@ template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   delete oSize;
   delete oSize2;
 }
+
 template <> void testGEMM(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   int8_t *A = new int8_t[16];
   int8_t *B = new int8_t[16];
