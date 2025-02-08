@@ -10,12 +10,13 @@ int main() {
   auto neon = new Neon();
   auto scalar = new Scalar();
   // run prefixSum and print the values
-  int8_t *v1 = new int8_t[16];
-  for (int i = 0; i < 16; ++i) {
+  const int arrSize = 64;
+  int8_t *v1 = new int8_t[arrSize];
+  for (int i = 0; i < arrSize; ++i) {
     v1[i] = 1;
   }
-  int8_t *result = scalar->prefixSum(v1, 16);
-  for (int i = 0; i < 16; ++i) {
+  auto *result = neon->prefixSum(v1, arrSize);
+  for (int i = 0; i < arrSize; ++i) {
     cout << (int)result[i] << " ";
   }
 

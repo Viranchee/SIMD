@@ -9,24 +9,33 @@
 using namespace std;
 
 class Neon : public SIMD<int8_t> {
+private:
+  const int L3 = 64;
+
 public:
+  //
+
   virtual int8_t *prefixSum(int8_t *v, int size) override {
     assert(size % 16 == 0);
     int8_t *result = new int8_t[size];
-    int8_t runningSum = 0;
+    int8_t carry = 0;
     for (int i = 0; i < size; i += 16) {
-      int8x16_t zeroVec = vdupq_n_s8(0);
-      int8x16_t data = vld1q_s8(v + i);
-      data = vaddq_s8(data, vextq_s8(zeroVec, data, 1));
-      data = vaddq_s8(data, vextq_s8(zeroVec, data, 2));
-      data = vaddq_s8(data, vextq_s8(zeroVec, data, 4));
-      data = vaddq_s8(data, vextq_s8(zeroVec, data, 8));
-      data = vaddq_s8(data, vdupq_n_s8(runningSum));
-      runningSum = vgetq_lane_s8(data, 15);
-      vst1q_s8(result + i, data);
+      // Step 1: Compute prefix sum within each chunk
+      int8x16_t sum = vld1q_s8(v + i);
+      int8x16_t temp = vextq_s8(vdupq_n_s8(0), sum, 15);
+      sum = vaddq_s8(sum, temp);
+      temp = vextq_s8(vdupq_n_s8(0), sum, 14);
+      sum = vaddq_s8(sum, temp);
+      temp = vextq_s8(vdupq_n_s8(0), sum, 12);
+      sum = vaddq_s8(sum, temp);
+      temp = vextq_s8(vdupq_n_s8(0), sum, 8);
+      sum = vaddq_s8(sum, temp);
+      sum = vaddq_s8(sum, vdupq_n_s8(carry));
+      carry = vgetq_lane_s8(sum, 15);
+      vst1q_s8(result + i, sum);
     }
 
-    return result; // Return the result array
+    return result;
   }
 
   virtual int8_t *vectorAdd(int8_t *v1, int8_t *v2, int size) override {
