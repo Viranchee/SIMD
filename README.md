@@ -7,5 +7,5 @@
 - [x] PrefixSum // 1 1 1 1
 - [x] VectorReduce
 - [x] Conv1D
-- [ ] Conv2D
-- [ ] GEMM
+- [x] Conv2D
+- [ ] MatMul

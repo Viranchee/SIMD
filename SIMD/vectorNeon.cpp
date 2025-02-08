@@ -3,6 +3,7 @@
 #include "kernels.h"
 #include <arm_neon.h>
 #include <cassert>
+#include <cfloat>
 #include <cstdint>
 
 // Use ARM vector instructions
@@ -127,51 +128,33 @@ public:
   virtual int8_t *convolution_2d(int8_t *input, int iSide, int8_t *kernel,
                                  int kSide, int **oSide, int padding,
                                  int stride) override {
-
-    int oSideValue = (iSide + 2 * padding - kSide) / stride + 1;
-    *oSide = new int(oSideValue);
-
-    int8_t *output = new int8_t[oSideValue * oSideValue];
-
-    for (int i = 0; i < oSideValue; i++) {
-      for (int j = 0; j < oSideValue; j++) {
-        int32x4_t sumVec = vdupq_n_s32(0);
-
-        for (int ki = 0; ki < kSide; ki++) {
-          for (int kj = 0; kj < kSide; kj += 16) {
+    assert(iSide % 4 == 0);
+    assert(kSide % 4 == 0);
+    int outSize = (iSide + 2 * padding - kSide) / stride + 1;
+    *oSide = new int(outSize);
+    int8_t *output = new int8_t[outSize * outSize];
+    //
+    for (int i = 0; i < outSize; i++) {
+      for (int j = 0; j < outSize; j++) {
+        int32_t sum = 0;
+        // kside is 4
+        for (int ki = 0; ki < kSide; ki += 4) {
+          for (int kj = 0; kj < kSide; kj += 4) {
             int row = i * stride + ki - padding;
             int col = j * stride + kj - padding;
             if (row >= 0 && row < iSide && col >= 0 && col < iSide) {
-              int8x16_t inputVec = vld1q_s8(input + row * iSide + col);
-              int8x16_t kernelVec = vld1q_s8(kernel + ki * kSide + kj);
-
-              sumVec = vmlal_s8(sumVec, vget_low_s8(inputVec),
-                                vget_low_s8(kernelVec));
-              sumVec = vmlal_s8(sumVec, vget_high_s8(inputVec),
-                                vget_high_s8(kernelVec));
+              int8x16_t inputV = vld1q_s8(&input[row * iSide + col]);
+              int8x16_t kernelV = vld1q_s8(&kernel[ki * kSide + kj]);
+              int16x8_t prod1 =
+                  vmull_s8(vget_low_s8(inputV), vget_low_s8(kernelV));
+              int16x8_t prod2 =
+                  vmull_s8(vget_high_s8(inputV), vget_high_s8(kernelV));
+              int16x8_t sumV = vaddq_s8(prod1, prod2);
+              sum += vaddvq_s16(sumV);
             }
           }
         }
-
-        // Handle remaining elements if kSide is not a multiple of 16
-        for (int ki = 0; ki < kSide; ki++) {
-          for (int kj = (kSide / 16) * 16; kj < kSide; kj++) {
-            int row = i * stride + ki - padding;
-            int col = j * stride + kj - padding;
-            if (row >= 0 && row < iSide && col >= 0 && col < iSide) {
-              int8_t inputVal = input[row * iSide + col];
-              int8_t kernelVal = kernel[ki * kSide + kj];
-              sumVec =
-                  vaddq_s32(sumVec, vmovl_s8(vdup_n_s8(inputVal * kernelVal)));
-            }
-          }
-        }
-
-        int32_t sumArr[4];
-        vst1q_s32(sumArr, sumVec);
-        int sum = sumArr[0] + sumArr[1] + sumArr[2] + sumArr[3];
-
-        output[i * oSideValue + j] =
+        output[i * outSize + j] =
             static_cast<int8_t>(std::max(INT8_MIN, std::min(INT8_MAX, sum)));
       }
     }

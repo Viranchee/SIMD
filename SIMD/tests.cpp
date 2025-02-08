@@ -3,6 +3,16 @@
 #include <iostream>
 
 using namespace std;
+
+auto printArray = [](int8_t *res, int size, string name = "") {
+  cout << name << ": " << size << ":" << "\t";
+  for (int i = 0; i < size; i++) {
+    int8_t val = res[i];
+    cout << (int)val << "\t";
+  }
+  cout << endl;
+};
+
 template <> void testVectorAdd(SIMD<int8_t> *impl) {
   int8_t *v1 = new int8_t[16]{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
   int8_t *v2 = new int8_t[16]{5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8};
@@ -101,18 +111,23 @@ template <> void testConv1D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
 }
 
 template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
-  int8_t *v1 = new int8_t[64];
-  for (int i = 0; i < 64; i++) {
-    v1[i] = i % 4;
+  const int iSide = 8;
+  const int kSide = 4;
+  int8_t *v1 = new int8_t[iSide * iSide];
+  for (int i = 0; i < iSide * iSide; i++) {
+    v1[i] = 1;
   }
-  int8_t *kernel = new int8_t[16];
-  for (int i = 0; i < 16; i++) {
-    kernel[i] = i % 4;
+  int8_t *kernel = new int8_t[kSide * kSide];
+  for (int i = 0; i < kSide * kSide; i++) {
+    kernel[i] = 1;
   }
   int *oSize;
-  auto res = impl->convolution_2d(v1, 8, kernel, 4, &oSize, 0, 1);
+  auto res = impl->convolution_2d(v1, iSide, kernel, kSide, &oSize, 0, 1);
+
   int *oSize2;
-  int8_t *result = impl2->convolution_2d(v1, 8, kernel, 4, &oSize2, 0, 1);
+  int8_t *result =
+      impl2->convolution_2d(v1, iSide, kernel, kSide, &oSize2, 0, 1);
+
   if (*oSize != *oSize2) {
     cout << "Failed: " << oSize << " != " << oSize2 << endl;
     return;
