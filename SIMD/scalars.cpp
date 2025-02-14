@@ -68,19 +68,6 @@ public:
     return output;
   }
 
-  virtual int8_t *matMul(int8_t *A, int M, int8_t *B, int N, int K) override {
-    int8_t *result = new int8_t[M * N];
-    for (int i = 0; i < M; i++) {
-      for (int j = 0; j < N; j++) {
-        int sum = 0;
-        for (int k = 0; k < K; k++) {
-          sum += A[i * K + k] * B[k * N + j];
-        }
-        result[i * N + j] = sum;
-      }
-    }
-    return result;
-  }
   virtual int8_t *convolution_2d(int8_t *input, int iSide, int8_t *kernel,
                                  int kSide, int **oSide, int padding,
                                  int stride) override {
@@ -107,6 +94,20 @@ public:
     }
 
     return output;
+  }
+
+  virtual int8_t *matMul(int8_t *A, int M, int8_t *B, int N, int K) override {
+    int8_t *result = new int8_t[M * N];
+    for (int i = 0; i < M; i++) {
+      for (int j = 0; j < N; j++) {
+        int sum = 0;
+        for (int k = 0; k < K; k++) {
+          sum += A[i * K + k] * B[k * N + j];
+        }
+        result[i * N + j] = sum;
+      }
+    }
+    return result;
   }
 };
 
