@@ -1,15 +1,28 @@
 #include "tests.h"
 #include <cstdint>
+#include <iomanip>
 #include <iostream>
 
 using namespace std;
 
 auto printArray = [](int8_t *res, int size, string name = "") {
-  cout << name << ": " << size << ":" << "\t";
+  cout << name << ": " << size << ":" << endl;
   for (int i = 0; i < size; i++) {
     int8_t val = res[i];
-    cout << (int)val << "\t";
+    cout << setw(3) << static_cast<int>(val) << " ";
   }
+  cout << endl;
+};
+auto printMatrix = [](int8_t *res, int M, int N, string name = "") {
+  cout << name << ": " << M << "x" << N << ":" << endl;
+  for (int i = 0; i < M; i++) {
+    for (int j = 0; j < N; j++) {
+      int8_t val = res[i * N + j];
+      cout << setw(3) << static_cast<int>(val) << " ";
+    }
+    cout << endl;
+  }
+
   cout << endl;
 };
 
@@ -154,17 +167,23 @@ template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
 }
 
 template <> void testGEMM(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
-  int8_t *A = new int8_t[16];
-  int8_t *B = new int8_t[16];
-  for (int i = 0; i < 16; i++) {
+  const int mkn[] = {16, 16, 16};
+  int8_t *A = new int8_t[mkn[0] * mkn[1]];
+  int8_t *B = new int8_t[mkn[1] * mkn[2]];
+  for (int i = 0; i < mkn[0] * mkn[1]; i++) {
     A[i] = i % 4;
     B[i] = i % 4;
   }
-  int8_t *result = impl->matMul(A, 4, B, 4, 4);
-  int8_t *result2 = impl2->matMul(A, 4, B, 4, 4);
-  for (int i = 0; i < 16; i++) {
+  printMatrix(A, mkn[0], mkn[2], "in A");
+  printMatrix(B, mkn[0], mkn[2], "in B");
+  int8_t *result = impl->matMul(A, mkn[0], B, mkn[2], mkn[1]);
+  printMatrix(result, mkn[0], mkn[2], "scalar");
+  int8_t *result2 = impl2->matMul(A, mkn[0], B, mkn[2], mkn[1]);
+  printMatrix(result2, mkn[0], mkn[2], "vector");
+  for (int i = 0; i < mkn[0] * mkn[2]; i++) {
     if (result[i] != result2[i]) {
-      cout << "Failed: " << result[i] << " != " << result2[i] << endl;
+      cout << "Failed: idx: " << i << " " << result[i] << " != " << result2[i]
+           << endl;
       return;
     }
   }
