@@ -163,24 +163,36 @@ public:
   }
 
   virtual int8_t *matMul(int8_t *A, int M, int8_t *B, int N, int K) override {
-    int8_t *C = new int8_t[M * N];
-    for (int i = 0; i < M * N; i++) {
-      C[i] = 0;
-    }
+    assert(M % 16 == 0);
+    assert(N % 16 == 0);
+    assert(K % 16 == 0);
+    int8_t *C = new int8_t[M * N]();
+    const int tileSize = 16; // Tile size for blocking
 
-    for (int i = 0; i < M; i++) {
-      for (int j = 0; j < N; j++) {
-        int32x4_t sumVec = vdupq_n_s32(0);
-        for (int k = 0; k < K; k += 16) {
-          int8x16_t Avec = vld1q_s8(A + i * K + k);
-          int8x16_t Bvec = vld1q_s8(B + k * N + j);
-          sumVec = vmlal_s8(sumVec, vget_low_s8(Avec), vget_low_s8(Bvec));
-          sumVec = vmlal_s8(sumVec, vget_high_s8(Avec), vget_high_s8(Bvec));
+    for (int i = 0; i < M; i += tileSize) {
+      for (int j = 0; j < N; j += tileSize) {
+        for (int k = 0; k < K; k += tileSize) {
+          for (int ii = i; ii < std::min(i + tileSize, M); ++ii) {
+            for (int jj = j; jj < std::min(j + tileSize, N); ++jj) {
+              int32x4_t sumVec = vdupq_n_s32(0);
+              for (int kk = k; kk < std::min(k + tileSize, K); kk += 16) {
+                int8x16_t Avec = vld1q_s8(A + ii * K + kk);
+                int8x16_t Bvec = vld1q_s8(B + kk * N + jj);
+                int16x8_t prod1 =
+                    vmull_s8(vget_low_s8(Avec), vget_low_s8(Bvec));
+                int16x8_t prod2 =
+                    vmull_s8(vget_high_s8(Avec), vget_high_s8(Bvec));
+                sumVec = vaddq_s32(sumVec, vpaddlq_s16(prod1));
+                sumVec = vaddq_s32(sumVec, vpaddlq_s16(prod2));
+              }
+              int32_t sumArr[4];
+              vst1q_s32(sumArr, sumVec);
+              int sum = sumArr[0] + sumArr[1] + sumArr[2] + sumArr[3];
+              C[ii * N + jj] =
+                  static_cast<int8_t>(std::max(-128, std::min(127, sum)));
+            }
+          }
         }
-        int32_t sumArr[4];
-        vst1q_s32(sumArr, sumVec);
-        int sum = sumArr[0] + sumArr[1] + sumArr[2] + sumArr[3];
-        C[i * N + j] = std::min(std::max(sum, -128), 127);
       }
     }
 
