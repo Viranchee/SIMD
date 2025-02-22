@@ -1,0 +1,6 @@
+CompileFlags:
+  Add:
+    - -I/Volumes/code/env/pymetal/lib/python3.9/site-packages/torch/include
+    - -I/usr/local/include
+    - -std=c++23
+    - -DUSE_TORCH_EXTENSION
