@@ -1,5 +1,6 @@
 #ifndef SIMD_KERNELS_H
 #define SIMD_KERNELS_H
+#include <arm_neon.h>
 #include <cstdint>
 #include <vector>
 
@@ -42,6 +43,8 @@ public:
   // MatMul gemm: MxK * KxN = MxN
   virtual T *matMul(T *A, int M, T *B, int N, int K) = 0;
 
+  // SoftMax for 2D Tensor over x axis
+  virtual void softMax(float32_t *input, float32_t *output, int length) = 0;
   virtual ~SIMD() {}
 };
 #endif

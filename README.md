@@ -8,4 +8,5 @@
 - [x] VectorReduce
 - [x] Conv1D
 - [x] Conv2D
+- [ ] SoftMax
 - [ ] MatMul

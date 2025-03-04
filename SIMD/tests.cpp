@@ -1,4 +1,5 @@
 #include "tests.h"
+#include <arm_neon.h>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
@@ -164,6 +165,29 @@ template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   delete[] res;
   delete oSize;
   delete oSize2;
+}
+
+template <> void testSoftmax(SIMD<float32_t> *impl, SIMD<float32_t> *impl2) {
+  const int length = 16;
+  float32_t *input = new float32_t[length];
+  for (int i = 0; i < length; i++) {
+    input[i] = i;
+  }
+  float32_t *output = new float32_t[length];
+  float32_t *output2 = new float32_t[length];
+  impl->softMax(input, output, length);
+  impl2->softMax(input, output2, length);
+  for (int i = 0; i < length; i++) {
+    if (output[i] != output2[i]) {
+      cout << "Failed: idx " << i << " Values: " << output[i]
+           << " != " << output2[i] << endl;
+      return;
+    }
+  }
+  cout << "Softmax passed" << endl;
+  delete[] input;
+  delete[] output;
+  delete[] output2;
 }
 
 template <> void testGEMM(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {

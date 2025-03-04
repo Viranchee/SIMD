@@ -4,6 +4,7 @@
 #include <arm_neon.h>
 #include <cassert>
 #include <cfloat>
+#include <cmath>
 #include <cstdint>
 
 // Use ARM vector instructions
@@ -198,5 +199,80 @@ public:
 
     return C;
   }
+
+  float32x4_t approximateExponential(float32x4_t x) {
+    // Use a polynomial approximation for exp(x), like Estrin's scheme
+    // Approximation: exp(x) ≈ 1 + x + (x^2)/2 + (x^3)/6 + (x^4)/24
+    float32x4_t one = vdupq_n_f32(1.0f);
+    float32x4_t x2 = vmulq_f32(x, x);
+    float32x4_t x3 = vmulq_f32(x2, x);
+    float32x4_t x4 = vmulq_f32(x3, x);
+
+    return vaddq_f32(vaddq_f32(one, x),
+                     vaddq_f32(vmulq_n_f32(x2, 0.5f),
+                               vaddq_f32(vmulq_n_f32(x3, 1.0f / 6.0f),
+                                         vmulq_n_f32(x4, 1.0f / 24.0f))));
+  }
+
+  virtual void softMax(float32_t *input, float32_t *output,
+                       int length) override {
+    float max_val = -INFINITY;
+    int i = 0;
+
+    { // Step 1: Find the maximum value for numerical stability
+
+      float32x4_t max_vec = vdupq_n_f32(-INFINITY);
+      for (; i <= length - 4; i += 4) {
+        float32x4_t v = vld1q_f32(input + i);
+        max_vec = vmaxq_f32(max_vec, v);
+      }
+      max_val = std::max(vgetq_lane_f32(max_vec, 0),
+                         std::max(vgetq_lane_f32(max_vec, 1),
+                                  std::max(vgetq_lane_f32(max_vec, 2),
+                                           vgetq_lane_f32(max_vec, 3))));
+      // Handle remaining elements
+      for (; i < length; i++) {
+        max_val = std::max(max_val, input[i]);
+      }
+    }
+
+    float sum_exp = 0.0f;
+    { // Step 2: Compute exponentials and sum
+      float32x4_t sum_vec = vdupq_n_f32(0.0f);
+      i = 0;
+      for (; i <= length - 4; i += 4) {
+        float32x4_t v = vld1q_f32(input + i);
+        float32x4_t exp_v = approximateExponential(
+            vsubq_f32(v, vdupq_n_f32(max_val))); // exp(x - max)
+        vst1q_f32(output + i, exp_v);            // Store exponentials
+        sum_vec = vaddq_f32(sum_vec, exp_v);     // Accumulate sum
+      }
+
+      // Sum up the elements in the vector register
+      sum_exp = vgetq_lane_f32(sum_vec, 0) + vgetq_lane_f32(sum_vec, 1) +
+                vgetq_lane_f32(sum_vec, 2) + vgetq_lane_f32(sum_vec, 3);
+
+      // Handle remaining elements
+      for (; i < length; i++) {
+        output[i] = std::exp(input[i] - max_val);
+        sum_exp += output[i];
+      }
+    }
+
+    { // Step 3: Normalize by dividing each element by sum_exp
+      float32x4_t sum_inv = vdupq_n_f32(1.0f / sum_exp);
+      i = 0;
+      for (; i <= length - 4; i += 4) {
+        float32x4_t v = vld1q_f32(output + i);
+        vst1q_f32(output + i, vmulq_f32(v, sum_inv)); // Normalize
+      }
+
+      // Handle remaining elements
+      for (; i < length; i++) {
+        output[i] /= sum_exp;
+      }
+    }
+  }
 };
+
 #endif // SIMD_VECTORNEON_CPP
