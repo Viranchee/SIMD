@@ -167,7 +167,7 @@ template <> void testConv2D(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   delete oSize2;
 }
 
-template <> void testSoftmax(SIMD<float32_t> *impl, SIMD<float32_t> *impl2) {
+template <> void testSoftmax(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   const int length = 16;
   float32_t *input = new float32_t[length];
   for (int i = 0; i < length; i++) {
@@ -177,6 +177,23 @@ template <> void testSoftmax(SIMD<float32_t> *impl, SIMD<float32_t> *impl2) {
   float32_t *output2 = new float32_t[length];
   impl->softMax(input, output, length);
   impl2->softMax(input, output2, length);
+
+  // Print
+  cout << "Input: ";
+  for (int i = 0; i < length; i++) {
+    cout << input[i] << "\t";
+  }
+  cout << endl;
+  cout << "Output: ";
+  for (int i = 0; i < length; i++) {
+    cout << output[i] << "\t";
+  }
+  cout << endl;
+  cout << "Output2: ";
+  for (int i = 0; i < length; i++) {
+    cout << output2[i] << "\t";
+  }
+  cout << endl;
   for (int i = 0; i < length; i++) {
     if (output[i] != output2[i]) {
       cout << "Failed: idx " << i << " Values: " << output[i]

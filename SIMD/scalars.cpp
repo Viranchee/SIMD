@@ -1,7 +1,9 @@
 #ifndef SCALAR_H
 #define SCALAR_H
 #include "kernels.h"
+#include <arm_neon.h>
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 
 class Scalar : public SIMD<int8_t> {
@@ -108,6 +110,26 @@ public:
       }
     }
     return result;
+  }
+
+  virtual void softMax(float32_t *input, float32_t *output,
+                       int length) override {
+    // Do softmax over x axis in this 1D tensor
+    float32_t maxVal = -INFINITY;
+    float32_t sum = 0;
+    for (int i = 0; i < length; i++)
+      maxVal = std::max(maxVal, input[i]);
+
+    for (int i = 0; i < length; i++) {
+      output[i] = std::exp(input[i] - maxVal);
+      sum += output[i];
+    }
+
+    // Normalize
+    for (int i = 0; i < length; i++) {
+      output[i] /= sum;
+    }
+    return;
   }
 };
 

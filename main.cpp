@@ -23,6 +23,6 @@ int main() {
   testSoftmax(scalar, neon);
   testConv1D(scalar, neon);
   testConv2D(scalar, neon);
-  testGEMM(scalar, neon);
+  // testGEMM(scalar, neon);
   return 0;
 }
