@@ -8,5 +8,6 @@
 - [x] VectorReduce
 - [x] Conv1D
 - [x] Conv2D
-- [ ] SoftMax
+- [x] SoftMax: Bit magic works better than Taylor Series approximation
 - [ ] MatMul
+
