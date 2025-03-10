@@ -117,8 +117,9 @@ public:
     // Do softmax over x axis in this 1D tensor
     float32_t maxVal = -INFINITY;
     float32_t sum = 0;
-    for (int i = 0; i < length; i++)
+    for (int i = 0; i < length; i++) {
       maxVal = std::max(maxVal, input[i]);
+    }
 
     for (int i = 0; i < length; i++) {
       output[i] = std::exp(input[i] - maxVal);
