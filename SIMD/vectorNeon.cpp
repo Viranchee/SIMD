@@ -200,18 +200,68 @@ public:
     return C;
   }
 
-  float32x4_t approximateExponential(float32x4_t x) {
+  float32x4_t approxETaylorSeries(float32x4_t x) {
     // Use a polynomial approximation for exp(x), like Estrin's scheme
     // Approximation: exp(x) ≈ 1 + x + (x^2)/2 + (x^3)/6 + (x^4)/24
     float32x4_t one = vdupq_n_f32(1.0f);
     float32x4_t x2 = vmulq_f32(x, x);
     float32x4_t x3 = vmulq_f32(x2, x);
     float32x4_t x4 = vmulq_f32(x3, x);
+    float32x4_t x5 = vmulq_f32(x4, x);
 
-    return vaddq_f32(vaddq_f32(one, x),
-                     vaddq_f32(vmulq_n_f32(x2, 0.5f),
-                               vaddq_f32(vmulq_n_f32(x3, 1.0f / 6.0f),
-                                         vmulq_n_f32(x4, 1.0f / 24.0f))));
+    float32x4_t a = vaddq_f32(one, x);
+    float32x4_t b =
+        vaddq_f32(vmulq_n_f32(x2, 0.5f), vmulq_n_f32(x3, 1.0f / 6.0f));
+    float32x4_t c = vaddq_f32(vmulq_n_f32(x4, 1.0f / 24.0f),
+                              vmulq_n_f32(x5, 1.0f / 120.0f));
+
+    return vaddq_f32(a, vaddq_f32(b, c));
+  }
+
+  float32x4_t approxEBitManipulation(float32x4_t x) {
+    // Clamp x to prevent overflow/underflow
+    x = vmaxq_f32(vminq_f32(x, vdupq_n_f32(88.0f)), vdupq_n_f32(-88.0f));
+
+    // Convert ln(2) to float32x4_t
+    const float32x4_t log2e = vdupq_n_f32(1.4426950408889634f); // log2(e)
+
+    // Compute exponent base-2: 2^(x * log2(e))
+    float32x4_t y = vmulq_f32(x, log2e);
+    int32x4_t i = vcvtq_s32_f32(vsubq_f32(y, vdupq_n_f32(0.5f))); // Floor(y)
+    float32x4_t f = vsubq_f32(y, vcvtq_f32_s32(i)); // Fractional part
+
+    // Polynomial approximation for 2^f in range [-0.5, 0.5]
+    float32x4_t poly =
+        vaddq_f32(vdupq_n_f32(1.0f),
+                  vmulq_f32(f,
+                            vaddq_f32(vdupq_n_f32(0.6931472f), // ln(2)
+                                      vmulq_f32(f, vdupq_n_f32(0.2402265f)))));
+
+    // Reconstruct 2^(x * log2(e)) using exponent bit-shifting trick
+    int32x4_t exponent = vaddq_s32(i, vdupq_n_s32(127)); // Bias of 127
+    exponent = vshlq_n_s32(exponent, 23); // Shift to exponent position
+    float32x4_t result = vreinterpretq_f32_s32(exponent); // Reinterpret bits
+    return vmulq_f32(result, poly);                       // Final approximation
+  }
+  float32x4_t approxERemez(float32x4_t x) {
+    // Clamp x to prevent large overflows
+    x = vmaxq_f32(vminq_f32(x, vdupq_n_f32(88.0f)), vdupq_n_f32(-88.0f));
+
+    const float32x4_t c1 = vdupq_n_f32(0.9999997f);
+    const float32x4_t c2 = vdupq_n_f32(0.6931472f);
+    const float32x4_t c3 = vdupq_n_f32(0.2402265f);
+    const float32x4_t c4 = vdupq_n_f32(0.0555051f);
+    const float32x4_t c5 = vdupq_n_f32(0.0096181f);
+
+    float32x4_t x2 = vmulq_f32(x, x);
+    float32x4_t x3 = vmulq_f32(x2, x);
+    float32x4_t x4 = vmulq_f32(x3, x);
+    float32x4_t x5 = vmulq_f32(x4, x);
+
+    return vaddq_f32(
+        vaddq_f32(vaddq_f32(vaddq_f32(c1, vmulq_f32(x, c2)), vmulq_f32(x2, c3)),
+                  vmulq_f32(x3, c4)),
+        vmulq_f32(x4, c5));
   }
 
   virtual void softMax(float32_t *input, float32_t *output,
@@ -226,10 +276,9 @@ public:
         float32x4_t v = vld1q_f32(input + i);
         max_vec = vmaxq_f32(max_vec, v);
       }
-      max_val = std::max(vgetq_lane_f32(max_vec, 0),
-                         std::max(vgetq_lane_f32(max_vec, 1),
-                                  std::max(vgetq_lane_f32(max_vec, 2),
-                                           vgetq_lane_f32(max_vec, 3))));
+      max_vec = vpmaxq_f32(max_vec, max_vec);
+      max_vec = vpmaxq_f32(max_vec, max_vec);
+      max_val = vgetq_lane_f32(max_vec, 0);
       // Handle remaining elements
       for (; i < length; i++) {
         max_val = std::max(max_val, input[i]);
@@ -242,16 +291,16 @@ public:
       i = 0;
       for (; i <= length - 4; i += 4) {
         float32x4_t v = vld1q_f32(input + i);
-        float32x4_t exp_v = approximateExponential(
+        float32x4_t exp_v = approxEBitManipulation(
             vsubq_f32(v, vdupq_n_f32(max_val))); // exp(x - max)
         vst1q_f32(output + i, exp_v);            // Store exponentials
         sum_vec = vaddq_f32(sum_vec, exp_v);     // Accumulate sum
       }
 
       // Sum up the elements in the vector register
-      sum_exp = vgetq_lane_f32(sum_vec, 0) + vgetq_lane_f32(sum_vec, 1) +
-                vgetq_lane_f32(sum_vec, 2) + vgetq_lane_f32(sum_vec, 3);
-
+      sum_vec = vpaddq_f32(sum_vec, sum_vec);
+      sum_vec = vpaddq_f32(sum_vec, sum_vec);
+      sum_exp = vgetq_lane_f32(sum_vec, 0);
       // Handle remaining elements
       for (; i < length; i++) {
         output[i] = std::exp(input[i] - max_val);
