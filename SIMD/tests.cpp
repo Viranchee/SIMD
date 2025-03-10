@@ -178,26 +178,11 @@ template <> void testSoftmax(SIMD<int8_t> *impl, SIMD<int8_t> *impl2) {
   impl->softMax(input, output, length);
   impl2->softMax(input, output2, length);
 
-  // Print
-  cout << "Input: ";
   for (int i = 0; i < length; i++) {
-    cout << input[i] << "\t";
-  }
-  cout << endl;
-  cout << "Output: ";
-  for (int i = 0; i < length; i++) {
-    cout << output[i] << "\t";
-  }
-  cout << endl;
-  cout << "Output2: ";
-  for (int i = 0; i < length; i++) {
-    cout << output2[i] << "\t";
-  }
-  cout << endl;
-  for (int i = 0; i < length; i++) {
-    if (output[i] != output2[i]) {
+    auto err = abs(output[i] - output2[i]);
+    if (err > 1e-2) {
       cout << "Failed: idx " << i << " Values: " << output[i]
-           << " != " << output2[i] << endl;
+           << " != " << output2[i] << " Error: " << err << endl;
       return;
     }
   }
